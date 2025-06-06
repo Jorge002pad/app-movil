@@ -1,107 +1,199 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(MiAppFedeloba());
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
+class MiAppFedeloba extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Tutorial Fedelobo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
+        primarySwatch: Colors.deepPurple,
       ),
-      home: const MyHomePage(title: 'aaaaaaaa'),
+      home: PaginaInicio(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class PaginaInicio extends StatelessWidget {
+  final List<String> imagenes = [
+    'assets/gatito.jpg',
+    'assets/gatito.jpg',
+    'assets/gatito.jpg',
+  ];
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('¡Hola, soy Flutter!'),
+        backgroundColor: Colors.deepPurple,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.notifications),
+            onPressed: () {
+              print('Tocaste la campanita');
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _crearCardConImagenYTexto(),
+            _crearIconoYTexto(),
+            _crearCarruselDeFotos(imagenes),
+            _crearVideoLocal(),
+            _crearBotonNavegar(context),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.deepPurple,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Inicio"),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: "Favoritos"),
+        ],
+      ),
+    );
+  }
+
+  // CARD con imagen y texto
+  Widget _crearCardConImagenYTexto() {
+    return Card(
+      margin: EdgeInsets.all(16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Column(
+        children: [
+          Image.asset('assets/gatito.jpg', height: 200, fit: BoxFit.cover),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text('Este es un gatito bien fachero 🐱', style: TextStyle(fontSize: 18)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // FILA con ícono y texto
+  Widget _crearIconoYTexto() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Icon(Icons.star, color: Colors.amber, size: 40),
+          SizedBox(width: 10),
+          Text('¡Este ícono brilla más que tu ex!', style: TextStyle(fontSize: 16)),
+        ],
+      ),
+    );
+  }
+
+  // CARRUSEL de imágenes
+  Widget _crearCarruselDeFotos(List<String> imagenes) {
+    return Container(
+      height: 200,
+      margin: EdgeInsets.symmetric(vertical: 20),
+      child: PageView.builder(
+        controller: PageController(viewportFraction: 0.8),
+        itemCount: imagenes.length,
+        itemBuilder: (context, index) {
+          return _fotoCarrusel(imagenes[index]);
+        },
+      ),
+    );
+  }
+
+  Widget _fotoCarrusel(String url) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: Image.asset(url, fit: BoxFit.cover),
+      ),
+    );
+  }
+
+  // VIDEO local
+  Widget _crearVideoLocal() {
+    return Container(
+      height: 200,
+      margin: EdgeInsets.all(16),
+      child: VideoPlayerWidget(videoPath: 'assets/video.mp4'),
+    );
+  }
+
+  // BOTÓN de navegación
+  Widget _crearBotonNavegar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => PaginaDetalle()));
+        },
+        child: Text("Ir a otra página"),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.deepPurple,
+        ),
+      ),
+    );
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+// Página secundaria (detalle)
+class PaginaDetalle extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Página Detalle"),
+        backgroundColor: Colors.deepPurple,
+      ),
+      body: Center(
+        child: Text("Aquí podrías mostrar más información o imágenes."),
+      ),
+    );
+  }
+}
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+// Widget personalizado para reproducir video
+class VideoPlayerWidget extends StatefulWidget {
+  final String videoPath;
+
+  const VideoPlayerWidget({required this.videoPath});
+
+  @override
+  State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.asset(widget.videoPath)
+      ..initialize().then((_) {
+        setState(() {});
+        _controller.play(); // Reproducir automáticamente
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose(); // Liberar recursos
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    return _controller.value.isInitialized
+        ? AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            child: VideoPlayer(_controller),
+          )
+        : Center(child: CircularProgressIndicator());
   }
 }
